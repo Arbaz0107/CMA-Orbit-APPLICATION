@@ -1,0 +1,20 @@
+/* CMA Orbit — fit-to-screen safety (no cut-off buttons on short / narrow phones). Loaded after orbit2.css. */
+.fixed.inset-0[class*="bg-black/"] > div[class*="max-h-"],
+.fixed.inset-0[class*="bg-black/"] > .orb-sheet{max-height:calc(100dvh - 12px) !important;overflow-y:auto}
+.fixed.inset-0[class*="bg-black/"] > div [class*="flex-1"][class*="overflow-y-auto"]{min-height:150px}
+.fixed.inset-0[class*="bg-black/"] > div[class*="max-h-"] > div:last-child[class*="border-t"]{position:sticky;bottom:0;z-index:3;background:var(--surface)}
+.orb-sheet{max-height:calc(100dvh - 12px)}
+/* Formula Hub dashboard is collapsible so it can't push the footer buttons off short screens */
+.o2-dd>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;height:38px;cursor:pointer;font-size:12.5px;font-weight:800}
+.o2-dd>summary::-webkit-details-marker{display:none}.o2-dd>summary span{display:inline-flex;align-items:center;gap:6px}.o2-dd>summary em{font-style:normal;font-weight:600;font-size:11px;color:var(--text-2)}
+.o2-dd:not([open])>summary::after{content:"▾";margin-left:4px;color:var(--text-2)}.o2-dd[open]>summary::after{content:"▴";margin-left:4px;color:var(--text-2)}
+.o2-fvdash{padding:4px 12px}
+/* narrow phones: Formula Vault header buttons become icon-only so the title never squeezes */
+@media (max-width:419px){
+  #formulaModal>div>div:first-child button>span{display:none}
+  #formulaModal>div>div:first-child button:not(.w-8){padding:0 !important;width:36px;height:36px;display:flex;align-items:center;justify-content:center}
+}
+@media (max-width:379px){
+  #formulaModal>div>div:first-child h3{font-size:16px !important}
+  .orb-header .orb-title{font-size:16px}
+}

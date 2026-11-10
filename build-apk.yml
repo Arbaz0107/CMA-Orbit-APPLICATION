@@ -1,0 +1,72 @@
+name: Build CMA Orbit APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sign with the permanent key and bump the version (so installs are updates)
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: python3 scripts/patch_android_signing.py
+
+      - name: Apply app icon and splash screen
+        run: |
+          find android/app/src/main/res -name 'splash.png' -delete
+          cp -r icons/res/. android/app/src/main/res/
+
+      - name: Apply Android launch theme (no black flash)
+        run: python3 scripts/patch_android_theme.py
+
+      - name: Sync web files
+        run: npx cap sync android
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Build debug APK (retries if the Gradle download times out)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          sed -i 's/^networkTimeout=.*/networkTimeout=120000/' gradle/wrapper/gradle-wrapper.properties
+          for i in 1 2 3 4; do
+            ./gradlew assembleDebug && exit 0
+            echo "Attempt $i failed, retrying in 20s..."; sleep 20
+          done
+          exit 1
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CMA-Orbit-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
